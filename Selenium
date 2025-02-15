@@ -1,0 +1,90 @@
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
+from datetime import date
+import time
+import csv
+from bs4 import BeautifulSoup
+
+
+
+# Setup Chrome options for the browser
+options = webdriver.ChromeOptions()
+options.add_argument("--start-maximized")
+options.add_argument("--disable-blink-features=AutomationControlled")
+options.add_experimental_option("detach", True)  # Keep the browser open
+
+
+
+
+# Initialize WebDriver and WebDriverWait
+driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+wait = WebDriverWait(driver, 30)
+
+def search_crisil(company_name):
+    try:
+        # Open CRISIL Ratings website
+        driver.get("https://www.crisilratings.com/en/home.html")
+        print("Opened link")
+
+        search_box = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, ".input_search.ui-autocomplete-input"))
+        )
+
+        print("Clicked on search icon")
+
+        search_box.send_keys(company_name)
+     # Wait for the autocomplete suggestions to appear
+        suggestions = WebDriverWait(driver, 10).until(
+        EC.presence_of_all_elements_located((By.CSS_SELECTOR, ".ui-menu-item"))  # Adjust selector as per actual HTML structure
+        )
+
+        # Click on the first suggestion (you can adjust this if needed)
+        if suggestions:
+            suggestions[0].click()  # Click on the first suggestion
+            print("Clicked on the first suggestion")
+        else:
+            print("No suggestions found")
+
+
+            # Wait for the container to load
+        container = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, ".comp-fs-instrument-container.rating-rational-companyFactsheet"))
+        )
+        print("Container loaded")
+
+        # Locate the rating text based on the span with text 'ratings'
+        try:
+    # Find the <span> element with 'ratings' text and get the next <h4> element
+            rating_element = container.find_element(By.XPATH, ".//span[contains(text(),'ratings')]/following-sibling::h4")
+
+    # Extract the rating text
+            rating = rating_element.text
+            print(f"Rating: {rating}")
+        except Exception as e:
+            print(f"Error: {e}")
+
+
+        return extracted_data
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return []
+
+
+# Search for a company
+company_name = "laxmi"
+search_results = search_crisil(company_name)
+
+# Print extracted content
+for idx, result in enumerate(search_results, start=1):
+    print(f"Result {idx}:\n{result}\n")
+
+
+
+
